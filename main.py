@@ -106,7 +106,7 @@ def send():
         displayResult(False, text=str(e))
 
 root = tk.Tk()
-root.title("Stylish Mail")
+root.title("Mail Styler")
 
 rowCount=0
 

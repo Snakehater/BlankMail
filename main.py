@@ -1,22 +1,63 @@
 from mttkinter import mtTkinter as tk
 from tkinter import ttk
 import smtplib
+import json
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
+def generateList():
+    text = inputText.get(1.0, "end")[:-1]
+    print(text)
+    jsonvar = json.loads('[]')
+    contentadder = list('')
+    subtitleadder = list('')
+    idx=0
+    while idx < len(text):
+        char = text[idx]
+        print(char)
+        if char == '<':
+            if contentadder != list(''):
+                jsonvar.append({'type':'cont', 'content':''.join(contentadder)})
+                contentadder = list('')
+            contentadder = list('')
+            running = True
+            while idx < len(text) and running:
+                idx += 1
+                char = text[idx]
+                if char == '>':
+                    running = False
+                else:
+                    subtitleadder.append(char)
+            if idx == len(text) and char != '>':
+                print('error')
+            jsonvar.append({'type':'subt', 'content':''.join(subtitleadder)})
+            subtitleadder = list('')
+        else:
+            contentadder.append(char)
+        idx += 1
+    if contentadder != list(''):
+        jsonvar.append({'type':'cont', 'content':''.join(contentadder)})
+        contentadder = list('')
+
+
+    return json.dumps(jsonvar)
+
 def insertsubtitle():
     inputTextTxt = inputText.get(1.0, "end")[:-1]
     if inputTextTxt == '':
-        inputText.insert('end', '<subt></subt>')
+        inputText.insert('end', '<>')
     else:
-        inputText.insert('end', '\n<subt></subt>')
+        inputText.insert('end', '\n<>')
     inputText.focus_set()
     inputTextTxtStock = inputText.get(1.0, "end")
     row = inputTextTxtStock.count('\n')
-    column = 6
+    column = 1
     inputText.mark_set("insert", "%d.%d" % (row, column))
+
+def sendAll():
+    print(generateList())
 
 def addNewLines(text, maxChars):
     idx = 0
@@ -177,9 +218,15 @@ tk.Label(root, text='Message:', height=1).grid(padx=10, row=rowCount, sticky='ew
 
 rowCount += 1
 
-inputText = tk.Text(root, width=40, height=20, highlightthickness='0', borderwidth=2, relief="sunken")
+scrollbar = tk.Scrollbar(root)
+scrollbar.grid(column=2, row=rowCount, sticky='w')
+
+inputText = tk.Text(root, width=40, height=20, highlightthickness='0', borderwidth=2, relief="sunken", yscrollcommand=scrollbar.set)
 inputText.grid(column=0, row=rowCount, columnspan=2, padx=10, sticky='ew')
 inputText.bind('<KeyRelease>', resetResult)
+inputText.insert("1.0", "<subtitle>\nLorem ipsum")
+
+scrollbar.configure(command=inputText.yview)
 
 rowCount += 1
 
@@ -187,7 +234,7 @@ ttk.Button(root, text='insert subtitle', width=len('insertsubtitle'), command=in
 
 rowCount += 1
 
-sendBtn = ttk.Button(root, text='Send', command=(lambda: send()))
+sendBtn = ttk.Button(root, text='Send', command=(lambda: sendAll()))
 sendBtn.grid(column=0, row=rowCount, columnspan=2, padx=10, pady=10, sticky='ew')
 
 rowCount += 1

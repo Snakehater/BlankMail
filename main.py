@@ -6,6 +6,18 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
+def insertsubtitle():
+    inputTextTxt = inputText.get(1.0, "end")[:-1]
+    if inputTextTxt == '':
+        inputText.insert('end', '<subt></subt>')
+    else:
+        inputText.insert('end', '\n<subt></subt>')
+    inputText.focus_set()
+    inputTextTxtStock = inputText.get(1.0, "end")
+    row = inputTextTxtStock.count('\n')
+    column = 6
+    inputText.mark_set("insert", "%d.%d" % (row, column))
+
 def addNewLines(text, maxChars):
     idx = 0
     counter = 0
@@ -27,7 +39,7 @@ def addNewLines(text, maxChars):
 
 def displayResult(confirmed, text='', code=534):
     if confirmed is not True:
-        errorLabel.grid(padx=10, row=7, sticky='ew', columnspan=2)
+        errorLabel.grid(padx=10, row=errorLabelRow, sticky='ew', columnspan=2)
         if code is 534:
             progText = addNewLines('Something went wrong, login credentials may be wrong or "less secure apps" are disabled within your google account settings', 50)
         elif code is 550:
@@ -171,6 +183,10 @@ inputText.bind('<KeyRelease>', resetResult)
 
 rowCount += 1
 
+ttk.Button(root, text='insert subtitle', width=len('insertsubtitle'), command=insertsubtitle).grid(column=0, row=rowCount, padx=10)
+
+rowCount += 1
+
 sendBtn = ttk.Button(root, text='Send', command=(lambda: send()))
 sendBtn.grid(column=0, row=rowCount, columnspan=2, padx=10, pady=10, sticky='ew')
 
@@ -180,9 +196,11 @@ resultLabel = tk.Label(root, text='Not sent', height=1, fg="#5d5d5d")
 # resultLabel = tk.Text(root, height=1, width=40, fg="#5d5d5d", wrap='word')
 # resultLabel.insert('insert', 'Not sent')
 resultLabel.grid(padx=10, row=rowCount, sticky='ew', columnspan=2)
+resultRow=rowCount
 
 rowCount += 1
 
 errorLabel = tk.Label(root, text='', height=1, fg="#5d5d5d")
+errorLabelRow = rowCount
 
 tk.mainloop()

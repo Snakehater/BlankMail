@@ -2,21 +2,39 @@ from mttkinter import mtTkinter as tk
 from tkinter import ttk
 import smtplib
 import json
+import html
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
+def generateHtml(title, jsonStr):
+    jsonvar = json.loads(jsonStr)
+    shellHtml = open('customMailShell.html', "r").read()
+    titleHtml = open('title.html', "r").read()
+    subtitleHtml = open('subtitle.html', "r").read()
+    contentHtml = open('content.html', "r").read()
+
+    htmls = list('')
+    htmls.append(titleHtml.replace('<!-- input -->', html.escape(title).replace(' ', '&nbsp;')))
+    for eachJson in jsonvar:
+        if eachJson['type'] == 'subt':
+            htmls.append(subtitleHtml.replace('<!-- input -->', html.escape(eachJson['content'])))
+        else:
+            htmls.append(contentHtml.replace('<!-- input -->', html.escape(eachJson['content'])))
+        htmls.append('\n')
+    shellParsed = shellHtml.replace('<!-- allContent -->', ''.join(htmls))
+    return shellParsed
+
 def generateList():
     text = inputText.get(1.0, "end")[:-1]
-    print(text)
     jsonvar = json.loads('[]')
     contentadder = list('')
     subtitleadder = list('')
     idx=0
     while idx < len(text):
         char = text[idx]
-        print(char)
+        # print(char)
         if char == '<':
             if contentadder != list(''):
                 jsonvar.append({'type':'cont', 'content':''.join(contentadder)})
@@ -56,8 +74,15 @@ def insertsubtitle():
     column = 1
     inputText.mark_set("insert", "%d.%d" % (row, column))
 
-def sendAll():
-    print(generateList())
+def send():
+    jsonStr = generateList()
+    subject = subjectEntry.get()
+    html = generateHtml(subject, jsonStr)
+    text = inputText.get(1.0, "end")[:-1]
+    sender = mailFromEntry.get()
+    recipient = mailToEntry.get()
+
+    sendMail('vitu0216@fridaskolan.se', '0402169114', subject, sender, recipient, html, text)
 
 def addNewLines(text, maxChars):
     idx = 0
@@ -107,23 +132,23 @@ def resetResult(arg):
     errorLabel.update()
     resultLabel.update()
 
-def send():
+def sendMail(username, password, subject, sender, recipient, html, text):
     sendBtn.update()
     # Create message container - the correct MIME type is multipart/alternative.
     msgRoot = MIMEMultipart('related')
     # msg['Subject'] = subjectEntry.get()
-    msgRoot['Subject'] = "Link"
-    msgRoot['From'] = mailFromEntry.get()
-    msgRoot['To'] = mailToEntry.get()
+    msgRoot['Subject'] = subject
+    msgRoot['From'] = sender
+    msgRoot['To'] = recipient
 
     msgAlternative = MIMEMultipart('alternative')
     msgRoot.attach(msgAlternative)
 
     # Create the body of the message (a plain-text and an HTML version).
     # text = inputText.get(1, 'end')[:-1]
-    text = "Hey"
-    entireHtml = open('customEntireMail.html', "r").read()
-    html = entireHtml
+    text = text
+    # entireHtml = open('customEntireMail.html', "r").read()
+    # html = html
 
     # Record the MIME types of both parts - text/plain and text/html.
     part1 = MIMEText(text, 'plain')
@@ -180,8 +205,8 @@ def send():
         server.ehlo()
         # server.login('vigor.turujlija@gmail.com', 'mdorutrbqojgdxwn')
         # server.login('vigor@elvigo.com', 'stov04are')
-        server.login('vitu0216@fridaskolan.se', '0402169114')
-        server.sendmail(mailFromEntry.get(), mailToEntry.get(), msgRoot.as_string())
+        server.login(username, password)
+        server.sendmail(sender, recipient, msgRoot.as_string())
         server.quit()
         server.close()
         displayResult(True)
@@ -195,6 +220,7 @@ rowCount=0
 
 tk.Label(root, height=1, width=5, text='From', anchor='w').grid(column=0, row=rowCount, padx=10)
 mailFromEntry = tk.Entry(root, width=35)
+mailFromEntry.insert(0, 'vitu0216@fridaskolan.se')
 mailFromEntry.grid(column=1, row=rowCount, padx=10)
 mailFromEntry.bind('<KeyRelease>', resetResult)
 
@@ -202,6 +228,7 @@ rowCount += 1
 
 tk.Label(root, height=1, width=5, text='To', anchor='w').grid(column=0, row=rowCount, padx=10)
 mailToEntry = tk.Entry(root, width=35)
+mailToEntry.insert(0, 'vitu0216@fridaskolan.se')
 mailToEntry.grid(column=1, row=rowCount, padx=10)
 mailToEntry.bind('<KeyRelease>', resetResult)
 
@@ -209,6 +236,7 @@ rowCount += 1
 
 tk.Label(root, height=1, width=5, text='Subject', anchor='w').grid(column=0, row=rowCount, padx=10)
 subjectEntry = tk.Entry(root, width=35)
+subjectEntry.insert(0, "Lorem")
 subjectEntry.grid(column=1, row=rowCount, padx=10)
 subjectEntry.bind('<KeyRelease>', resetResult)
 
@@ -221,10 +249,10 @@ rowCount += 1
 scrollbar = tk.Scrollbar(root)
 scrollbar.grid(column=2, row=rowCount, sticky='w')
 
-inputText = tk.Text(root, width=40, height=20, highlightthickness='0', borderwidth=2, relief="sunken", yscrollcommand=scrollbar.set)
+inputText = tk.Text(root, width=40, height=20, wrap='word', highlightthickness='0', borderwidth=2, relief="sunken", yscrollcommand=scrollbar.set)
 inputText.grid(column=0, row=rowCount, columnspan=2, padx=10, sticky='ew')
 inputText.bind('<KeyRelease>', resetResult)
-inputText.insert("1.0", "<subtitle>\nLorem ipsum")
+inputText.insert("1.0", "<Lorem ipsum>\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vel suscipit ante, vitae maximus sem. Vivamus placerat, enim quis tincidunt molestie, nibh odio viverra turpis, vestibulum feugiat massa lectus vitae quam. Nulla eget libero magna. Cras vehicula sapien ac elementum fermentum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum nec nibh convallis, ultricies urna vel, mattis velit. In eu sem fringilla, porttitor mauris ut, dignissim lectus. Donec ut lectus id lectus vehicula ultrices. Donec pellentesque a lectus nec vulputate. Duis sapien ex, tempor at augue a, sollicitudin bibendum velit. Vestibulum quam nisl, interdum eget facilisis ac, placerat at augue. Maecenas diam est, ultricies in tellus vel, blandit maximus augue. Integer nec nulla massa. In pretium feugiat odio, quis porttitor ipsum feugiat nec. Nam egestas quis urna consequat consectetur. Morbi et ante in dolor auctor interdum sit amet a turpis.")
 
 scrollbar.configure(command=inputText.yview)
 
@@ -234,7 +262,7 @@ ttk.Button(root, text='insert subtitle', width=len('insertsubtitle'), command=in
 
 rowCount += 1
 
-sendBtn = ttk.Button(root, text='Send', command=(lambda: sendAll()))
+sendBtn = ttk.Button(root, text='Send', command=(lambda: send()))
 sendBtn.grid(column=0, row=rowCount, columnspan=2, padx=10, pady=10, sticky='ew')
 
 rowCount += 1

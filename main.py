@@ -4,6 +4,7 @@ import smtplib
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 
 def addNewLines(text, maxChars):
     idx = 0
@@ -56,24 +57,20 @@ def resetResult(arg):
 def send():
     sendBtn.update()
     # Create message container - the correct MIME type is multipart/alternative.
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = subjectEntry.get()
-    msg['From'] = mailFromEntry.get()
-    msg['To'] = mailToEntry.get()
+    msgRoot = MIMEMultipart('related')
+    # msg['Subject'] = subjectEntry.get()
+    msgRoot['Subject'] = "Link"
+    msgRoot['From'] = mailFromEntry.get()
+    msgRoot['To'] = mailToEntry.get()
+
+    msgAlternative = MIMEMultipart('alternative')
+    msgRoot.attach(msgAlternative)
 
     # Create the body of the message (a plain-text and an HTML version).
-    text = inputText.get(1, 'end')[:-1]
-    html = """\
-    <html>
-      <head></head>
-      <body>
-        <p>Hi!<br>
-           How are you?<br>
-           Here is the <a href="http://www.python.org">link</a> you wanted.
-        </p>
-      </body>
-    </html>
-    """
+    # text = inputText.get(1, 'end')[:-1]
+    text = "Hey"
+    entireHtml = open('customEntireMail.html', "r").read()
+    html = entireHtml
 
     # Record the MIME types of both parts - text/plain and text/html.
     part1 = MIMEText(text, 'plain')
@@ -82,8 +79,41 @@ def send():
     # Attach parts into message container.
     # According to RFC 2046, the last part of a multipart message, in this case
     # the HTML message, is best and preferred.
-    msg.attach(part1)
-    msg.attach(part2)
+    msgAlternative.attach(part1)
+    msgAlternative.attach(part2)
+
+    # This example assumes the image is in the current directory
+    githubpng = open('github.png', 'rb')
+    githubimage = MIMEImage(githubpng.read())
+    githubpng.close()
+
+    googleplaypng = open('googleplay.png', 'rb')
+    googleplayimage = MIMEImage(googleplaypng.read())
+    googleplaypng.close()
+
+    instagrampng = open('instagram.png', 'rb')
+    instagramimage = MIMEImage(instagrampng.read())
+    instagrampng.close()
+
+    snapchatpng = open('snapchat.png', 'rb')
+    snapchatimage = MIMEImage(snapchatpng.read())
+    snapchatpng.close()
+
+    twitterpng = open('twitter.png', 'rb')
+    twitterimage = MIMEImage(twitterpng.read())
+    twitterpng.close()
+
+    # Define the image's ID as referenced above
+    githubimage.add_header('Content-ID', '<githubpng>')
+    msgRoot.attach(githubimage)
+    googleplayimage.add_header('Content-ID', '<googleplaypng>')
+    msgRoot.attach(googleplayimage)
+    instagramimage.add_header('Content-ID', '<instagrampng>')
+    msgRoot.attach(instagramimage)
+    snapchatimage.add_header('Content-ID', '<snapchatpng>')
+    msgRoot.attach(snapchatimage)
+    twitterimage.add_header('Content-ID', '<twitterpng>')
+    msgRoot.attach(twitterimage)
 
     # # Send the message via local SMTP server.
     # s = smtplib.SMTP('localhost')
@@ -98,7 +128,7 @@ def send():
         # server.login('vigor.turujlija@gmail.com', 'mdorutrbqojgdxwn')
         # server.login('vigor@elvigo.com', 'stov04are')
         server.login('vitu0216@fridaskolan.se', '0402169114')
-        server.sendmail(mailFromEntry.get(), mailToEntry.get(), msg.as_string())
+        server.sendmail(mailFromEntry.get(), mailToEntry.get(), msgRoot.as_string())
         server.quit()
         server.close()
         displayResult(True)

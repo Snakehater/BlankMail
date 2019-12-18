@@ -1,12 +1,1 @@
-[
-  {
-    "username":"vitu0216@fridaskolan.se",
-    "password":"0402169114",
-    "server":"smtp.gmail.com"
-  },
-  {
-    "username":"vigor.turujlija@gmail.com",
-    "password":"mdorutrbqojgdxwn",
-    "server":"smtp.gmail.com"
-  }
-]
+[{"username": "vitu0216@fridaskolan.se", "password": "0402169114", "server": "smtp.gmail.com"}, {"username": "vigor.turujlija@gmail.com", "password": "mdorutrbqojgdxwn", "server": "smtp.gmail.com"}]

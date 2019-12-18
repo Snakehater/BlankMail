@@ -3,6 +3,7 @@ from tkinter import ttk
 import smtplib
 import json
 import html
+from accountmanager import AccountManager
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -12,6 +13,19 @@ from email.mime.image import MIMEImage
 root = tk.Tk()
 root.title("Mail Styler")
 selectedLogin = tk.StringVar(root)
+
+def updateAccounts():
+    selectedLogin.set('Login')
+    savedJson = open('logins.json', "r").read()
+    jsonvar = json.loads(savedJson)
+    choices = {''}
+    for elem in jsonvar:
+        choices.add(elem['username'])
+    dropDown = ttk.OptionMenu(accountsFrame, selectedLogin, *choices)
+    dropDown.grid(row=0, column=0, sticky='e')
+
+def openAccountManager():
+    AccountManager(updateAccounts)
 
 def generateHtml(title, jsonStr):
     jsonvar = json.loads(jsonStr)
@@ -248,20 +262,20 @@ def sendMail(username, subject, sender, recipient, html, text):
 
 rowCount=0
 
-frame = tk.Frame(root)
+accountsFrame = tk.Frame(root)
 
 selectedLogin.set('Login')
 savedJson = open('logins.json', "r").read()
 jsonvar = json.loads(savedJson)
-choices = {'Login'}
+choices = {''}
 for elem in jsonvar:
     choices.add(elem['username'])
-dropDown = ttk.OptionMenu(frame, selectedLogin, *choices)
+dropDown = ttk.OptionMenu(accountsFrame, selectedLogin, *choices)
 dropDown.grid(row=0, column=0, sticky='e')#.grid(padx=10, pady=10, sticky='w', row=rowCount)
 
-ttk.Button(frame, text='manage').grid(row=0, column=1, sticky='w')#.grid(row=rowCount, sticky='w')
+ttk.Button(accountsFrame, text='manage', command=openAccountManager).grid(row=0, column=1, sticky='w')#.grid(row=rowCount, sticky='w')
 
-frame.grid(row=rowCount, column=0, columnspan=2, sticky='w')
+accountsFrame.grid(row=rowCount, column=0, columnspan=2, sticky='w')
 
 rowCount += 1
 

@@ -194,6 +194,8 @@ def displayResult(confirmed, text='', code=534):
             progText = addNewLines('Input field is invalid', 50)
         elif code is -3:
             progText = addNewLines('Please select or/and add account details', 50)
+        elif code is -4:
+            progText = addNewLines('Connection went wrong, check everything and try again, spell check login and server', 50)
         else:
             progText = addNewLines('Could not send, please try again later', 50)
         resultLabel.configure(text=progText, fg='#ff0000', height=progText.count('\n')+1)
@@ -307,6 +309,7 @@ def sendMail(username, subject, sender, recipient, html, text):
     except Exception as e:
         # print("Please select or add login item")
         print(e)
+        displayResult(False, code=-4)
 
 rowCount=0
 

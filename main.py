@@ -4,17 +4,25 @@ import smtplib
 import json
 import html
 from accountmanager import AccountManager
+from testfile import TestFile
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
+
+TestFile()
 
 
 root = tk.Tk()
 root.title("Mail Styler")
 selectedLogin = tk.StringVar(root)
 
+def updateFromEntry(event):
+    mailFromEntry.delete(0, 'end')
+    mailFromEntry.insert(0, selectedLogin.get())
+
 def updateAccounts():
+    TestFile()
     selectedLogin.set('Login')
     savedJson = open('logins.json', "r").read()
     jsonvar = json.loads(savedJson)
@@ -25,7 +33,24 @@ def updateAccounts():
     dropDown.grid(row=0, column=0, sticky='e')
 
 def openAccountManager():
-    AccountManager(updateAccounts)
+    disableManageBtn()
+    AccountManager(updateAccounts, enableManageBtn)
+
+def disableManageBtn():
+    manageBtn.configure(state="disabled")
+    manageBtn.update()
+
+def enableManageBtn():
+    manageBtn.configure(state="enabled")
+    manageBtn.update()
+
+def disableSendBtn():
+    sendBtn.configure(state="disabled")
+    sendBtn.update()
+
+def enableSendBtn():
+    sendBtn.configure(state="enabled")
+    sendBtn.update()
 
 def generateHtml(title, jsonStr):
     jsonvar = json.loads(jsonStr)
@@ -105,6 +130,7 @@ def insertsubtitle():
     inputText.mark_set("insert", "%d.%d" % (row, column))
 
 def send():
+    disableSendBtn()
     jsonStr = generateList()
     subject = subjectEntry.get()
     html = generateHtml(subject, jsonStr)
@@ -112,7 +138,23 @@ def send():
     sender = mailFromEntry.get()
     recipient = mailToEntry.get()
 
-    sendMail(selectedLogin.get(), subject, sender, recipient, html, text)#'vitu0216@fridaskolan.se'
+    if selectedLogin.get() == 'Login':
+        dropDown.focus_set()
+        displayResult(False, code=-3)
+    elif sender == '':
+        mailFromEntry.focus_set()
+        displayResult(False, code=-2)
+    elif recipient == '':
+        mailToEntry.focus_set()
+        displayResult(False, code=-2)
+    elif subject == '':
+        subjectEntry.focus_set()
+        displayResult(False, code=-2)
+    elif inputText == '':
+        inputText.focus_set()
+        displayResult(False, code=-1)
+    else:
+        sendMail(selectedLogin.get(), subject, sender, recipient, html, text)#'vitu0216@fridaskolan.se'
 
 def addNewLines(text, maxChars):
     idx = 0
@@ -148,6 +190,10 @@ def displayResult(confirmed, text='', code=534):
             progText = addNewLines('The server does not recognize the email address format, and delivery is not possible.', 50)
         elif code is -1:
             progText = addNewLines('Input field is invalid, check "< and >"', 50)
+        elif code is -2:
+            progText = addNewLines('Input field is invalid', 50)
+        elif code is -3:
+            progText = addNewLines('Please select or/and add account details', 50)
         else:
             progText = addNewLines('Could not send, please try again later', 50)
         resultLabel.configure(text=progText, fg='#ff0000', height=progText.count('\n')+1)
@@ -159,6 +205,7 @@ def displayResult(confirmed, text='', code=534):
         errorLabel.grid_remove()
     errorLabel.update()
     resultLabel.update()
+    enableSendBtn()
 def resetResult(arg):
     resultLabel.configure(text='Not sent', fg="#5d5d5d", height=1)
     errorLabel.grid_remove()
@@ -270,10 +317,11 @@ jsonvar = json.loads(savedJson)
 choices = {''}
 for elem in jsonvar:
     choices.add(elem['username'])
-dropDown = ttk.OptionMenu(accountsFrame, selectedLogin, *choices)
+dropDown = ttk.OptionMenu(accountsFrame, selectedLogin, *choices, command=updateFromEntry)
 dropDown.grid(row=0, column=0, sticky='e')#.grid(padx=10, pady=10, sticky='w', row=rowCount)
 
-ttk.Button(accountsFrame, text='manage', command=openAccountManager).grid(row=0, column=1, sticky='w')#.grid(row=rowCount, sticky='w')
+manageBtn = ttk.Button(accountsFrame, text='manage', command=openAccountManager)
+manageBtn.grid(row=0, column=1, sticky='w')#.grid(row=rowCount, sticky='w')
 
 accountsFrame.grid(row=rowCount, column=0, columnspan=2, sticky='w')
 
@@ -281,7 +329,7 @@ rowCount += 1
 
 tk.Label(root, height=1, width=5, text='From', anchor='w').grid(column=0, row=rowCount, padx=10)
 mailFromEntry = tk.Entry(root, width=35)
-mailFromEntry.insert(0, 'vitu0216@fridaskolan.se')
+# mailFromEntry.insert(0, 'vitu0216@fridaskolan.se')
 mailFromEntry.grid(column=1, row=rowCount, padx=10)
 mailFromEntry.bind('<KeyRelease>', resetResult)
 
@@ -289,7 +337,7 @@ rowCount += 1
 
 tk.Label(root, height=1, width=5, text='To', anchor='w').grid(column=0, row=rowCount, padx=10)
 mailToEntry = tk.Entry(root, width=35)
-mailToEntry.insert(0, 'vitu0216@fridaskolan.se')
+# mailToEntry.insert(0, 'vitu0216@fridaskolan.se')
 mailToEntry.grid(column=1, row=rowCount, padx=10)
 mailToEntry.bind('<KeyRelease>', resetResult)
 
@@ -297,7 +345,7 @@ rowCount += 1
 
 tk.Label(root, height=1, width=5, text='Subject', anchor='w').grid(column=0, row=rowCount, padx=10)
 subjectEntry = tk.Entry(root, width=35)
-subjectEntry.insert(0, "Lorem")
+# subjectEntry.insert(0, "Lorem")
 subjectEntry.grid(column=1, row=rowCount, padx=10)
 subjectEntry.bind('<KeyRelease>', resetResult)
 
@@ -313,7 +361,7 @@ scrollbar.grid(column=2, row=rowCount, sticky='w')
 inputText = tk.Text(root, width=40, height=20, wrap='word', highlightthickness='0', borderwidth=2, relief="sunken", yscrollcommand=scrollbar.set)
 inputText.grid(column=0, row=rowCount, columnspan=2, padx=10, sticky='ew')
 inputText.bind('<KeyRelease>', resetResult)
-inputText.insert("1.0", "<Lorem ipsum>\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vel suscipit ante, vitae maximus sem. Vivamus placerat, enim quis tincidunt molestie, nibh odio viverra turpis, vestibulum feugiat massa lectus vitae quam. Nulla eget libero magna. Cras vehicula sapien ac elementum fermentum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum nec nibh convallis, ultricies urna vel, mattis velit. In eu sem fringilla, porttitor mauris ut, dignissim lectus. Donec ut lectus id lectus vehicula ultrices. Donec pellentesque a lectus nec vulputate. Duis sapien ex, tempor at augue a, sollicitudin bibendum velit. Vestibulum quam nisl, interdum eget facilisis ac, placerat at augue. Maecenas diam est, ultricies in tellus vel, blandit maximus augue. Integer nec nulla massa. In pretium feugiat odio, quis porttitor ipsum feugiat nec. Nam egestas quis urna consequat consectetur. Morbi et ante in dolor auctor interdum sit amet a turpis.")
+inputText.insert("1.0", "<Lorem ipsum>\nLorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
 
 scrollbar.configure(command=inputText.yview)
 

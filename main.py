@@ -223,89 +223,90 @@ def sendMail(username, subject, sender, recipient, html, text):
             if elem['username'] == username:
                 loginElem = elem
                 break
-        if username != 'Login':
-            # Create message container - the correct MIME type is multipart/alternative.
-            msgRoot = MIMEMultipart('related')
-            # msg['Subject'] = subjectEntry.get()
-            msgRoot['Subject'] = subject
-            msgRoot['From'] = sender
-            msgRoot['To'] = recipient
+        # if username != 'Login':
+        # Create message container - the correct MIME type is multipart/alternative.
+        msgRoot = MIMEMultipart('related')
+        # msg['Subject'] = subjectEntry.get()
+        msgRoot['Subject'] = subject
+        msgRoot['From'] = sender
+        msgRoot['To'] = recipient
 
-            msgAlternative = MIMEMultipart('alternative')
-            msgRoot.attach(msgAlternative)
+        msgAlternative = MIMEMultipart('alternative')
+        msgRoot.attach(msgAlternative)
 
-            # Create the body of the message (a plain-text and an HTML version).
-            # text = inputText.get(1, 'end')[:-1]
-            text = text
-            # entireHtml = open('customEntireMail.html', "r").read()
-            # html = html
+        # Create the body of the message (a plain-text and an HTML version).
+        # text = inputText.get(1, 'end')[:-1]
+        text = text
+        # entireHtml = open('customEntireMail.html', "r").read()
+        # html = html
 
-            # Record the MIME types of both parts - text/plain and text/html.
-            part1 = MIMEText(text, 'plain')
-            part2 = MIMEText(html, 'html')
+        # Record the MIME types of both parts - text/plain and text/html.
+        part1 = MIMEText(text, 'plain')
+        part2 = MIMEText(html, 'html')
 
-            # Attach parts into message container.
-            # According to RFC 2046, the last part of a multipart message, in this case
-            # the HTML message, is best and preferred.
-            msgAlternative.attach(part1)
-            msgAlternative.attach(part2)
+        # Attach parts into message container.
+        # According to RFC 2046, the last part of a multipart message, in this case
+        # the HTML message, is best and preferred.
+        msgAlternative.attach(part1)
+        msgAlternative.attach(part2)
 
-            # This example assumes the image is in the current directory
-            githubpng = open('github.png', 'rb')
-            githubimage = MIMEImage(githubpng.read())
-            githubpng.close()
+        # This example assumes the image is in the current directory
+        githubpng = open('github.png', 'rb')
+        githubimage = MIMEImage(githubpng.read())
+        githubpng.close()
 
-            googleplaypng = open('googleplay.png', 'rb')
-            googleplayimage = MIMEImage(googleplaypng.read())
-            googleplaypng.close()
+        googleplaypng = open('googleplay.png', 'rb')
+        googleplayimage = MIMEImage(googleplaypng.read())
+        googleplaypng.close()
 
-            instagrampng = open('instagram.png', 'rb')
-            instagramimage = MIMEImage(instagrampng.read())
-            instagrampng.close()
+        instagrampng = open('instagram.png', 'rb')
+        instagramimage = MIMEImage(instagrampng.read())
+        instagrampng.close()
 
-            snapchatpng = open('snapchat.png', 'rb')
-            snapchatimage = MIMEImage(snapchatpng.read())
-            snapchatpng.close()
+        snapchatpng = open('snapchat.png', 'rb')
+        snapchatimage = MIMEImage(snapchatpng.read())
+        snapchatpng.close()
 
-            twitterpng = open('twitter.png', 'rb')
-            twitterimage = MIMEImage(twitterpng.read())
-            twitterpng.close()
+        twitterpng = open('twitter.png', 'rb')
+        twitterimage = MIMEImage(twitterpng.read())
+        twitterpng.close()
 
-            # Define the image's ID as referenced above
-            githubimage.add_header('Content-ID', '<githubpng>')
-            msgRoot.attach(githubimage)
-            googleplayimage.add_header('Content-ID', '<googleplaypng>')
-            msgRoot.attach(googleplayimage)
-            instagramimage.add_header('Content-ID', '<instagrampng>')
-            msgRoot.attach(instagramimage)
-            snapchatimage.add_header('Content-ID', '<snapchatpng>')
-            msgRoot.attach(snapchatimage)
-            twitterimage.add_header('Content-ID', '<twitterpng>')
-            msgRoot.attach(twitterimage)
+        # Define the image's ID as referenced above
+        githubimage.add_header('Content-ID', '<githubpng>')
+        msgRoot.attach(githubimage)
+        googleplayimage.add_header('Content-ID', '<googleplaypng>')
+        msgRoot.attach(googleplayimage)
+        instagramimage.add_header('Content-ID', '<instagrampng>')
+        msgRoot.attach(instagramimage)
+        snapchatimage.add_header('Content-ID', '<snapchatpng>')
+        msgRoot.attach(snapchatimage)
+        twitterimage.add_header('Content-ID', '<twitterpng>')
+        msgRoot.attach(twitterimage)
 
-            # # Send the message via local SMTP server.
-            # s = smtplib.SMTP('localhost')
-            # # sendmail function takes 3 arguments: sender's address, recipient's address
-            # # and message to send - here it is sent as one string.
-            # s.sendmail(mailFromEntry.get(), mailToEntry.get(), msg.as_string())
-            # s.quit()
-            try:
-                server = smtplib.SMTP_SSL(loginElem['server'], 465) #'smtp.gmail.com'
-                # server = smtplib.SMTP_SSL('send.one.com', 465)
-                server.ehlo()
-                # server.login('vigor.turujlija@gmail.com', 'mdorutrbqojgdxwn')
-                # server.login('vigor@elvigo.com', 'stov04are')
-                server.login(loginElem['username'], loginElem['password'])
-                server.sendmail(sender, recipient, msgRoot.as_string())
-                server.quit()
-                server.close()
-                displayResult(True)
-            except smtplib.SMTPException as e:
-                displayResult(False, text=str(e))
-        else:
-            print("Please select or add login item")
+        # # Send the message via local SMTP server.
+        # s = smtplib.SMTP('localhost')
+        # # sendmail function takes 3 arguments: sender's address, recipient's address
+        # # and message to send - here it is sent as one string.
+        # s.sendmail(mailFromEntry.get(), mailToEntry.get(), msg.as_string())
+        # s.quit()
+        try:
+            server = smtplib.SMTP_SSL(loginElem['server'], 465) #'smtp.gmail.com'
+            # server = smtplib.SMTP_SSL('send.one.com', 465)
+            server.ehlo()
+            # server.login('vigor.turujlija@gmail.com', 'mdorutrbqojgdxwn')
+            # server.login('vigor@elvigo.com', 'stov04are')
+            server.login(loginElem['username'], loginElem['password'])
+            server.sendmail(sender, recipient, msgRoot.as_string())
+            server.quit()
+            server.close()
+            displayResult(True)
+        except smtplib.SMTPException as e:
+            displayResult(False, text=str(e))
+        # else:
+        #     print("Please select or add login item")
     except Exception as e:
-        print("Please select or add login item")
+        # print("Please select or add login item")
+        print(e)
 
 rowCount=0
 

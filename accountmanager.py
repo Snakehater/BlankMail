@@ -10,13 +10,16 @@ class AccountManager:
     ttk = tkinter.ttk
     threading = __import__('threading')
     math = __import__('math')
+    TestFile = __import__('testfile').TestFile
 
-    def __init__(self, updateAccountsIn):
+    def __init__(self, updateAccountsIn, enableManageBtnIn):
 
         self.updateAccounts = updateAccountsIn
+        self.enableManageBtn = enableManageBtnIn
 
 
         self.root = self.tk.Tk()
+        self.root.title('Accounts')
         self.root.bind("<Destroy>", self.destroy)
 
         self.loadWidgets()
@@ -44,6 +47,7 @@ class AccountManager:
         self.addBtn = self.tk.Button(self.root, text='Add', command=self.addAccount)
         self.addBtn.grid(row=rowCount, column=3)
 
+        self.TestFile()
         savedJson = open('logins.json', "r").read()
         jsonvar = self.json.loads(savedJson)
         rowCount += 1
@@ -68,6 +72,7 @@ class AccountManager:
                 jsonvar['password'] = self.passwordEntry.get()
                 jsonvar['server'] = self.serverEntry.get()
 
+                self.TestFile()
                 savedJson = open('logins.json', "r").read()
                 oldJson = self.json.loads(savedJson)
                 oldJson.append(jsonvar)
@@ -80,6 +85,7 @@ class AccountManager:
             else:
                 self.usernameEntry.focus_set()
     def checkSaved(self, username, password, server):
+        self.TestFile()
         savedJson = open('logins.json', "r").read()
         jsonvar = self.json.loads(savedJson)
         for elem in jsonvar:
@@ -88,6 +94,7 @@ class AccountManager:
         return False
 
     def deleteAccount(self, username):
+        self.TestFile()
         savedJson = open('logins.json', "r").read()
         jsonvar = self.json.loads(savedJson)
         jsonWork = self.json.loads('[]')
@@ -114,4 +121,5 @@ class AccountManager:
             item.grid_remove()
 
     def destroy(self, event):
-        print('Account Manager destroyed')
+        self.enableManageBtn()
+        self.updateAccounts()
